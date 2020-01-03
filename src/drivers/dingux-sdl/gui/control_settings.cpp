@@ -11,79 +11,81 @@ int keyCheck(unsigned long key)
 	if (key == DINGOO_A) return DefaultGamePad[0][0];
 	if (key == DINGOO_Y) return DefaultGamePad[0][9];
 	if (key == DINGOO_X) return DefaultGamePad[0][8];
-
-	return -1;	
+	return -1;
 }
 
 //!!! BUG LOCATED IN SDL LIBRARY GUI.CPP 
 //!!! << configGamePadButton prefix creation SDL.Input.GamePad.%d missing "." at end >> 
 //!!! FOLLOWING STRINGS MAY BE DEPRECATED IF FIXED IN FUTURE RELEASE
 static void setA(unsigned long key)
-{   	
+{
 	g_config->setOption("SDL.Input.GamePad.0A", keyCheck(key));
 	UpdateInput(g_config);
 }
 
 static void setB(unsigned long key)
-{   	
+{
 	g_config->setOption("SDL.Input.GamePad.0B", keyCheck(key));
 	UpdateInput(g_config);
 }
 
 static void setTurboB(unsigned long key)
-{   	
+{
 	g_config->setOption("SDL.Input.GamePad.0TurboB", keyCheck(key));
 	UpdateInput(g_config);
 }
 
 static void setTurboA(unsigned long key)
-{   	
+{
 	g_config->setOption("SDL.Input.GamePad.0TurboA", keyCheck(key));
 	UpdateInput(g_config);
 }
 
 static void MergeControls(unsigned long key)
 {
-	int val;
-
+	int value;
+	g_config->getOption("SDL.MergeControls", &value);
+	int val = value;
 	if (key == DINGOO_RIGHT)
 		val = 1;
 	if (key == DINGOO_LEFT)
 		val = 0;
-
 	g_config->setOption("SDL.MergeControls", val);
+	UpdateInput(g_config);
 }
 
 static void setAnalogStick(unsigned long key)
 {
-	int val;
-
+	int value;
+	g_config->getOption("SDL.AnalogStick", &value);
+	int val = value;
 	if (key == DINGOO_RIGHT)
-		val = 1;
-	if (key == DINGOO_LEFT)
-		val = 0;
-
+		val = (value<=0)? 1 : 2;
+	else if (key == DINGOO_LEFT)
+		val = (value>=2)? 1 : 0;
 	g_config->setOption("SDL.AnalogStick", val);
+	UpdateInputConfig(g_config);
 }
 
 static void setAutoFirePattern(unsigned long key)
 {
-	int val;
-
+	int value;
+	g_config->getOption("SDL.AutoFirePattern", &value);
+	int val = value;
 	if (key == DINGOO_RIGHT && val < 2)
 		++val;
 	if (key == DINGOO_LEFT && val > 0)
 		--val;
-
 	g_config->setOption("SDL.AutoFirePattern", val);
+	UpdateInput(g_config);
 }
 
 static void resetMappings(unsigned long key)
 {
-	g_config->setOption("SDL.Input.GamePad.0A", DefaultGamePad[0][0]);
+	g_config->setOption("SDL.Input.GamePad.0A", DefaultGamePad[0][9]);
 	g_config->setOption("SDL.Input.GamePad.0B", DefaultGamePad[0][1]);
 	g_config->setOption("SDL.Input.GamePad.0TurboA", DefaultGamePad[0][8]);
-	g_config->setOption("SDL.Input.GamePad.0TurboB", DefaultGamePad[0][9]);
+	g_config->setOption("SDL.Input.GamePad.0TurboB", DefaultGamePad[0][0]);
 	g_config->setOption("SDL.MergeControls", 0);
 	g_config->setOption("SDL.AnalogStick", 0);
 	g_config->setOption("SDL.AutoFirePattern", 0);
@@ -153,7 +155,7 @@ int RunControlSettings()
 			}
 		}	
 		if ( !editMode ) {
-	   		if (parsekey(DINGOO_UP, 1)) {
+			if (parsekey(DINGOO_UP, 1)) {
 				if (index > 0) {
 					index--; 
 					spy -= 15;
@@ -173,13 +175,13 @@ int RunControlSettings()
 				}
 			}
 
-	   		if (parsekey(DINGOO_LEFT, 1)) {
+			if (parsekey(DINGOO_LEFT, 1)) {
 				if (index >= 4 && index <= 6) {
 					cm_menu[index].update(g_key);
 				}
 			}
 
-	   		if (parsekey(DINGOO_RIGHT, 1)) {
+			if (parsekey(DINGOO_RIGHT, 1)) {
 				if (index >= 4 && index <= 6) {
 					cm_menu[index].update(g_key);
 				}
@@ -193,7 +195,7 @@ int RunControlSettings()
 				editMode = 0;
 			}
 		}
-  
+
 		// Draw stuff
 		if( g_dirty ) 
 		{
@@ -238,8 +240,9 @@ int RunControlSettings()
 				else if (i == CONTROL_MENUSIZE-3)
 				{
 					int value;
+					static const char *analog_stick_text[3] = {"off", "left", "right"};
 					g_config->getOption("SDL.AnalogStick", &value);
-					sprintf(cBtn, "%s", value ? "on" : "off");
+					sprintf(cBtn, "%s", analog_stick_text[abs(value % 3)]);
 				}
 				else if (i == CONTROL_MENUSIZE-4)
 				{
@@ -248,19 +251,18 @@ int RunControlSettings()
 					sprintf(cBtn, "%s", mergeValue ? "on" : "off");
 				}
 				else if (iBtnVal == DefaultGamePad[0][0])
-					sprintf(cBtn, "%s", "GCW_A");
+					sprintf(cBtn, "%s", "BTN_A");
 				else if (iBtnVal == DefaultGamePad[0][1])
-					sprintf(cBtn, "%s", "GCW_B");
+					sprintf(cBtn, "%s", "BTN_B");
 				else if (iBtnVal == DefaultGamePad[0][8])
-					sprintf(cBtn, "%s", "GCW_Y");
+					sprintf(cBtn, "%s", "BTN_X");
 				else if (iBtnVal == DefaultGamePad[0][9])
-					sprintf(cBtn, "%s", "GCW_X");
+					sprintf(cBtn, "%s", "BTN_Y");
 				else
 					sprintf(cBtn, "%s", "<empty>");
 
-
 				DrawText(gui_screen, cBtn, 210, y);
-				
+
 			}
 
 			// Draw info
@@ -273,7 +275,7 @@ int RunControlSettings()
 		
 		// Update real screen
 		FCEUGUI_Flip();
-	}	
+	}
 
 	// Clear screen
 	dingoo_clear_video();

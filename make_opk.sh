@@ -1,6 +1,6 @@
 #!/bin/sh
-
-OPK_NAME=fceux.opk
+OPK_REV=$(bash getver.sh)
+OPK_NAME=fceux-${OPK_REV}.opk
 echo ${OPK_NAME}
 
 # create default.gcw0.desktop
@@ -12,6 +12,7 @@ Exec=fceux %f
 Terminal=false
 Type=Application
 MimeType=application/zip;application/x-nes-rom;
+X-OD-NeedsDownscaling=true
 StartupNotify=true
 Icon=fceux
 Categories=emulators;
@@ -25,7 +26,7 @@ FLIST="${FLIST} fceux.png"
 FLIST="${FLIST} default.gcw0.desktop"
 
 rm -f ${OPK_NAME}
-mksquashfs ${FLIST} ${OPK_NAME} -all-root -no-xattrs -noappend -no-exports
+mksquashfs ${FLIST} bin/${OPK_NAME} -all-root -no-xattrs -noappend -no-exports
 
 cat default.gcw0.desktop
 rm -f default.gcw0.desktop

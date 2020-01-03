@@ -152,20 +152,19 @@ static int _keyonly(int a)
 	if(a > SDLK_LAST+1 || a < 0)
 		return(0);
 	#if SDL_VERSION_ATLEAST(1, 3, 0)
-    if(g_keyState[SDL_GetScancodeFromKey((SDLKey)a)])
-    #else
-    if(g_keyState[a])
-    #endif
-    {
-	
-        if(!keyonce[a]) {
-            keyonce[a] = 1;
-            return(1);
-        }
-    } else {
-        keyonce[a] = 0;
-    }
-    return(0);
+	if(g_keyState[SDL_GetScancodeFromKey((SDLKey)a)])
+	#else
+	if(g_keyState[a])
+	#endif
+	{
+		if(!keyonce[a]) {
+			keyonce[a] = 1;
+			return(1);
+		}
+	} else {
+		keyonce[a] = 0;
+	}
+	return(0);
 }
 
 // a hack to check DINGOO_R hotkey combo
@@ -247,40 +246,40 @@ void FCEUD_LoadStateFrom() {
 /**
 * Hook for transformer board
 */
-unsigned int *GetKeyboard(void)                                                     
+unsigned int *GetKeyboard(void)
 {
-  int size = 256;
-  Uint8* keystate = SDL_GetKeyState(&size);
-  return (unsigned int*)(keystate);
+	int size = 256;
+	Uint8* keystate = SDL_GetKeyState(&size);
+	return (unsigned int*)(keystate);
 }
 
 /**
  * Parse hotkey commands and execute accordingly.
  */
 static void KeyboardCommands() {
-    int is_shift, is_alt;
+	int is_shift, is_alt;
 
-    // get the keyboard input
-    #if SDL_VERSION_ATLEAST(1, 3, 0)	 
-    g_keyState = SDL_GetKeyboardState(NULL);	 
-    #else
-    g_keyState = SDL_GetKeyState(NULL);
+	// get the keyboard input
+	#if SDL_VERSION_ATLEAST(1, 3, 0)
+	g_keyState = SDL_GetKeyboardState(NULL);
+	#else
+	g_keyState = SDL_GetKeyState(NULL);
 	#endif
 
 	/* NOT SUPPORTED
 	 // check if the family keyboard is enabled
-    if(InputType[2] == SIFC_FKB) {
-        if(keyonly(SCROLLLOCK)) {
-            g_fkbEnabled ^= 1;
-            FCEUI_DispMessage("Family Keyboard %sabled.", 0,
-                              g_fkbEnabled ? "en" : "dis");
-        }
-        SDL_WM_GrabInput(g_fkbEnabled ? SDL_GRAB_ON : SDL_GRAB_OFF);
-        if(g_fkbEnabled) {
-            return;
-        }
-    }
-	 }*/
+	if(InputType[2] == SIFC_FKB) {
+		if(keyonly(SCROLLLOCK)) {
+			g_fkbEnabled ^= 1;
+			FCEUI_DispMessage("Family Keyboard %sabled.", 0,
+							  g_fkbEnabled ? "en" : "dis");
+		}
+		SDL_WM_GrabInput(g_fkbEnabled ? SDL_GRAB_ON : SDL_GRAB_OFF);
+		if(g_fkbEnabled) {
+			return;
+		}
+	}
+	}*/
 
 	#if SDL_VERSION_ATLEAST(1, 3, 0)
 	if(g_keyState[SDL_GetScancodeFromKey(SDLK_LSHIFT)] || g_keyState[SDL_GetScancodeFromKey(SDLK_RSHIFT)])
@@ -312,7 +311,7 @@ static void KeyboardCommands() {
 
 	// Power flick (SDLK_HOME) to enter GUI
 	if (_keyonly(DINGOO_L2)
-        || MenuRequested) {
+		|| MenuRequested) {
 		SilenceSound(1);
 		FCEUGUI_Run();
 		SilenceSound(0);
@@ -618,28 +617,28 @@ static void KeyboardCommands() {
 void // removed static for a call in lua-engine.cpp
 GetMouseData(uint32(&d)[3])
 {
-    int x,y;
-    uint32 t;
+	int x,y;
+	uint32 t;
 
-    // Don't get input when a movie is playing back
-    if(FCEUMOV_Mode(MOVIEMODE_PLAY))
-        return;
+	// Don't get input when a movie is playing back
+	if(FCEUMOV_Mode(MOVIEMODE_PLAY))
+		return;
 
-    // retrieve the state of the mouse from SDL
-    t = SDL_GetMouseState(&x, &y);
+	// retrieve the state of the mouse from SDL
+	t = SDL_GetMouseState(&x, &y);
 
-    d[2] = 0;
-    if(t & SDL_BUTTON(1)) {
-        d[2] |= 0x1;
-    }
-    if(t & SDL_BUTTON(3)) {
-        d[2] |= 0x2;
-    }
+	d[2] = 0;
+	if(t & SDL_BUTTON(1)) {
+		d[2] |= 0x1;
+	}
+	if(t & SDL_BUTTON(3)) {
+		d[2] |= 0x2;
+	}
 
-    // get the mouse position from the SDL video driver
-    t = PtoV(x, y);
-    d[0] = t & 0xFFFF;
-    d[1] = (t >> 16) & 0xFFFF;
+	// get the mouse position from the SDL video driver
+	t = PtoV(x, y);
+	d[0] = t & 0xFFFF;
+	d[1] = (t >> 16) & 0xFFFF;
 }
 
 /**
@@ -647,90 +646,87 @@ GetMouseData(uint32(&d)[3])
  */
 static void UpdatePhysicalInput()
 {
-    SDL_Event event;
+	SDL_Event event;
 
-    // loop, handling all pending events
-    while(SDL_PollEvent(&event)) {
-        switch(event.type) {
-        case SDL_QUIT:
-            CloseGame();
-            puts("Quit");
-            break;
-        case SDL_FCEU_HOTKEY_EVENT:
-            switch(event.user.code) {
-                case HK_PAUSE:
-                    FCEUI_ToggleEmulationPause();
-                    break;
-                default:
-                    FCEU_printf("Warning: unknown hotkey event %d\n", event.user.code);
-            }
-            break;
-        case SDL_KEYDOWN:
-            if (event.key.keysym.sym == DINGOO_MENU)
-                // Because a KEYUP is sent straight after the KEYDOWN for the
-                // Power switch, SDL_GetKeyState will not ever see this.
-                // Keep a record of it.
-                MenuRequested = true;
-            break;
+	// loop, handling all pending events
+	while(SDL_PollEvent(&event)) {
+		switch(event.type) {
+		case SDL_QUIT:
+			CloseGame();
+			puts("Quit");
+			break;
+		case SDL_FCEU_HOTKEY_EVENT:
+			switch(event.user.code) {
+				case HK_PAUSE:
+					FCEUI_ToggleEmulationPause();
+					break;
+				default:
+					FCEU_printf("Warning: unknown hotkey event %d\n", event.user.code);
+			}
+			break;
+		case SDL_KEYDOWN:
+			if (event.key.keysym.sym == DINGOO_MENU)
+				// Because a KEYUP is sent straight after the KEYDOWN for the
+				// Power switch, SDL_GetKeyState will not ever see this.
+				// Keep a record of it.
+				MenuRequested = true;
+			break;
 		case SDL_JOYAXISMOTION:
-        {
-            int axisval = event.jaxis.value;
-            if (event.jaxis.axis == 0)
-            {// X axis
-                analog1 &= ~(ANALOG_LEFT | ANALOG_RIGHT);
-                if (axisval > joy_commit_range)
-                {
-                    analog1 |= ANALOG_RIGHT;
-                }
-                else if (axisval < -joy_commit_range)
-                {
-                    analog1 |= ANALOG_LEFT;
-                }
-            }
-            else if (event.jaxis.axis == 1)
-            {// Y axis
-                analog1 &= ~(ANALOG_UP | ANALOG_DOWN);
-                if (axisval > joy_commit_range)
-                {
-                    analog1 |= ANALOG_DOWN;
-                }
-                else if (axisval < -joy_commit_range)
-                {
-                    analog1 |= ANALOG_UP;
-                }
-            }
-            break;
-        }
-        default:
-            // do nothing
-            break;
-        }
-    }
-    //SDL_PumpEvents();
+		{
+			int axisval = event.jaxis.value;
+			int jx = -1, jy = -1;
+			if (1 == use_analog) {// left
+				jx = 0;
+				jy = 1;
+			} else if (2 == use_analog) {// right
+				jx = 2;
+				jy = 3;
+			}
+			if (event.jaxis.axis == jx) {// X axis
+				analog1 &= ~(ANALOG_LEFT | ANALOG_RIGHT);
+				if (axisval > joy_commit_range)
+					analog1 |= ANALOG_RIGHT;
+				else if (axisval < -joy_commit_range)
+					analog1 |= ANALOG_LEFT;
+			} else if (event.jaxis.axis == jy) {// Y axis
+				analog1 &= ~(ANALOG_UP | ANALOG_DOWN);
+				if (axisval > joy_commit_range)
+					analog1 |= ANALOG_DOWN;
+				else if (axisval < -joy_commit_range)
+					analog1 |= ANALOG_UP;
+			}
+			break;
+		}
+		default:
+			// do nothing
+			break;
+		}
+	}
+	//SDL_PumpEvents();
 }
 
 /**
  * Tests to see if a specified button is currently pressed.
  */
 static int DTestButton(ButtConfig *bc){
-    int x;
+	int x;
 
-    for(x = 0; x < bc->NumC; x++) {
-        if(bc->ButtType[x] == BUTTC_KEYBOARD) {
+	for(x = 0; x < bc->NumC; x++) {
+		if(bc->ButtType[x] == BUTTC_KEYBOARD) {
 			#if SDL_VERSION_ATLEAST(1,3,0)
 			if(g_keyState[SDL_GetScancodeFromKey((SDLKey)bc->ButtonNum[x])]) {
 			#else
-            if(g_keyState[bc->ButtonNum[x]]) {
+			if(g_keyState[bc->ButtonNum[x]]) {
 			#endif
-                return(1);
-            }
-        } else if(bc->ButtType[x] == BUTTC_JOYSTICK) {
-            if(DTestButtonJoy(bc)) {
-                return(1);
-            }
-        }
-    }
-    return(0);
+				return(1);
+			}
+		} else if(bc->ButtType[x] == BUTTC_JOYSTICK) {
+			if(DTestButtonJoy(bc)) {
+				return(1);
+			}
+		}
+	}
+	return(0);
 }
 
 #define MK(x)       {{BUTTC_KEYBOARD},{0},{MKK(x)},1}
